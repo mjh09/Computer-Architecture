@@ -4,10 +4,14 @@ import sys
 
 class CPU:
     """Main CPU class."""
-
+    instructions = {
+        130 : 'LDI'
+    }
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0]*256
+        self.register = [0]*8
+        self.pc=0
 
     def load(self):
         """Load a program into memory."""
@@ -60,6 +64,52 @@ class CPU:
 
         print()
 
+    def ram_read(self, address):
+        return self.ram[address]
+
+    def ram_write(self, address, value):
+        self.ram[address] = value
+
     def run(self):
         """Run the CPU."""
-        pass
+        
+        IR = self.pc
+
+        #load 8 into register 0
+        # print register 0
+        #halt
+        running = True
+        while running:
+
+            command = self.ram[IR]
+            
+            #number of instructions
+            byte_string = f'{command:b}'
+            slice_of_instructs = byte_string[:2]
+            num_of_instructs = int(slice_of_instructs,2)
+            
+            if num_of_instructs == 2:
+                operand_a = self.ram_read(IR+1)
+                operand_b = self.ram_read(IR+2)
+
+            if num_of_instructs == 1:
+                operand_a = self.ram_read(IR+1)
+
+            if command == 0b10000010: # load LDI
+                
+                load_reg = operand_a # register to load
+                val = operand_b # value to insert
+
+                self.register[load_reg] = val
+                IR+=3
+                continue
+            
+            elif command == 0b01000111: # print code
+                reg_to_print = operand_a # register value is to be printed from
+                val_to_print = self.register[reg_to_print] # value from register
+                print(val_to_print) # 
+                IR+=2
+                continue
+
+            elif command == 0b00000001: # halt
+                running = False
