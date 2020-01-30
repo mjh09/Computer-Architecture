@@ -8,10 +8,13 @@ class CPU:
     global instructions
     instructions = {
         1 : "HLT",
+        17: "RET",
         69 : "PUSH",
         70 : "POP",
         71 : "PRN",
+        80 : "CALL",
         130 : "LDI",
+        160 : "ADD",
         162 : "MUL"
     }
 
@@ -75,6 +78,31 @@ class CPU:
         self.IR += 2
 
     branch_table[instructions[70]] = handle_pop
+
+    def handle_call(self, op1):
+        next_instruct = self.IR + 2
+        self.SP -= 1
+        self.ram[self.SP] = next_instruct
+        self.IR = self.register[op1]
+
+    branch_table[instructions[80]] = handle_call
+
+    def handle_ret(self):
+        next_instruct = self.ram[self.SP]
+        self.SP += 1
+        self.IR = next_instruct
+
+    branch_table[instructions[17]] = handle_ret
+
+    def handle_add(self, op1, op2):
+        val1 = self.register[op1]
+        val2 = self.register[op2]
+        val3 = val1 + val2
+        self.register[op1] = val3
+        self.IR +=3
+
+    branch_table[instructions[160]] = handle_add
+
 
     def load(self):
         """Load a program into memory."""
@@ -203,6 +231,10 @@ class CPU:
             if num_of_instructs == 1:
                 operand_a = self.ram_read(self.IR+1)
                 func(self, operand_a)
+                continue
+
+            if num_of_instructs == 0:
+                func(self)
                 continue
 
             
