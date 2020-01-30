@@ -8,6 +8,8 @@ class CPU:
     global instructions
     instructions = {
         1 : "HLT",
+        69 : "PUSH",
+        70 : "POP",
         71 : "PRN",
         130 : "LDI",
         162 : "MUL"
@@ -24,6 +26,7 @@ class CPU:
         self.ram = [0]*256
         self.register = [0]*8
         self.IR=0
+        self.SP=255
         
 
     
@@ -57,6 +60,21 @@ class CPU:
 
     branch_table[instructions[162]] = handle_mul
 
+    def handle_push(self, op1):
+        self.SP -= 1
+        val = self.register[op1]
+        self.ram[self.SP] = val
+        self.IR +=2
+
+    branch_table[instructions[69]] = handle_push
+
+    def handle_pop(self, op1):
+        val = self.ram[self.SP]
+        self.register[op1] = val
+        self.SP += 1
+        self.IR += 2
+
+    branch_table[instructions[70]] = handle_pop
 
     def load(self):
         """Load a program into memory."""
